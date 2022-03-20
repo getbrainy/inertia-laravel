@@ -85,12 +85,17 @@ class ResponseFactory
         return new LazyProp($callback);
     }
 
+    public function render(string $component, $props = []): Response
+    {
+        return $this->page($component, $props);
+    }
+
     /**
      * @param  string  $component
      * @param  array|Arrayable  $props
      * @return Response
      */
-    public function render(string $component, $props = []): Response
+    public function page(string $component, $props = []): Response
     {
         if ($props instanceof Arrayable) {
             $props = $props->toArray();
@@ -102,6 +107,11 @@ class ResponseFactory
             $this->rootView,
             $this->getVersion()
         );
+    }
+
+    public function dialog(string $component, $props = []): Response
+    {
+        return $this->page($component, $props)->dialog();
     }
 
     /**
