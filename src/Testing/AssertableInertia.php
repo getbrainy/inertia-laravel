@@ -13,6 +13,9 @@ class AssertableInertia extends AssertableJson
     /** @var string */
     private $component;
 
+    /** @var ?static */
+    private $dialog;
+
     /** @var string */
     private $url;
 
@@ -38,6 +41,14 @@ class AssertableInertia extends AssertableJson
         $instance->component = $page['component'];
         $instance->url = $page['url'];
         $instance->version = $page['version'];
+        if ($dialogData = $page['dialog'] ?? null) {
+            $dialog = static::fromArray($dialogData['props']);
+            $dialog->component = $dialogData['component'];
+            $dialog->url = $dialogData['url'];
+            $dialog->version = null;
+
+            $instance->dialog = $dialog;
+        }
 
         return $instance;
     }
@@ -46,7 +57,7 @@ class AssertableInertia extends AssertableJson
     {
         PHPUnit::assertSame($value, $this->component, 'Unexpected Inertia page component.');
 
-        if ($shouldExist || (is_null($shouldExist) && config('inertia.testing.ensure_pages_exist', true))) {
+        if ($shouldExist || (null === $shouldExist && config('inertia.testing.ensure_pages_exist', true))) {
             try {
                 app('inertia.testing.view-finder')->find($value);
             } catch (InvalidArgumentException $exception) {
@@ -55,6 +66,21 @@ class AssertableInertia extends AssertableJson
         }
 
         return $this;
+    }
+
+    public function dialog(string $value = null, $shouldExist = null): self
+    {
+        PHPUnit::assertSame($value, $this->dialog->component, 'Unexpected Inertia page dialog.');
+
+        if ($shouldExist || (null === $shouldExist && config('inertia.testing.ensure_pages_exist', true))) {
+            try {
+                app('inertia.testing.view-finder')->find($value);
+            } catch (InvalidArgumentException $exception) {
+                PHPUnit::fail(sprintf('Inertia page dialog file [%s] does not exist.', $value));
+            }
+        }
+
+        return $this->dialog;
     }
 
     public function url(string $value): self
@@ -78,6 +104,7 @@ class AssertableInertia extends AssertableJson
             'props' => $this->prop(),
             'url' => $this->url,
             'version' => $this->version,
+            'dialog' => $this->dialog,
         ];
     }
 }
